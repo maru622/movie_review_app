@@ -10,9 +10,19 @@ class ReviewController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $query = Review::with('user');
+    
+        // movie_idがクエリパラメータとして指定されている場合はフィルタリング
+        if ($request->has('movie_id')) {
+            $query->where('movie_id', $request->query('movie_id'));
+        }
+    
+        // クエリの結果を取得
+        $reviews = $query->get();
+    
+        return response()->json($reviews);
     }
 
     /**
@@ -34,7 +44,7 @@ class ReviewController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Review $review)
+    public function show($movie_id)
     {
         //
     }
