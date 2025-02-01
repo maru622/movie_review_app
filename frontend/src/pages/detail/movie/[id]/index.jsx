@@ -2,9 +2,9 @@ import AppLayout from '@/components/Layouts/AppLayout'
 import Head from 'next/head'
 import React from 'react'
 import MovieDetail from './MovieDetail'
-import ReviewForm from '@/components/ReviewForm'
+import MovieReviews from '@/components/MovieReviews'
 
-export default function index({ movie }) {
+export default function index({ movie, movieId }) {
     return (
         <AppLayout
             header={
@@ -17,7 +17,7 @@ export default function index({ movie }) {
             </Head>
 
             <MovieDetail movie={movie} />
-            <ReviewForm />
+            <MovieReviews movieId={movieId} />
         </AppLayout>
     )
 }
@@ -42,7 +42,7 @@ export async function getServerSideProps(context) {
             overview = movieEN.overview
         }
 
-        return { props: { movie: { ...movieJP, overview } } }
+        return { props: { movie: { ...movieJP, overview }, movieId: id } }
     } catch (error) {
         console.error('Error fetching movie details:', error)
         return { props: { movie: null } }
