@@ -1,10 +1,27 @@
-import { Box, Card, CardContent, Typography } from '@mui/material'
+import {
+    Box,
+    Button,
+    Card,
+    CardContent,
+    IconButton,
+    Modal,
+    Typography,
+} from '@mui/material'
 import React, { useEffect, useState } from 'react'
+import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import StarIcon from '@mui/icons-material/Star'
+import CloseIcon from '@mui/icons-material/Close'
+import AddIcon from '@mui/icons-material/Add'
 import ReviewForm from './ReviewForm'
+import laravelApiClient from '@/lib/laravelApiClient'
+import { useAuth } from '@/hooks/auth'
 
 export default function MovieReviews({ movieId }) {
     const [reviews, setReviews] = useState([])
+    const [open, setOpen] = useState(false)
+    const { user } = useAuth({ middleware: 'auth' })
+    const [editingReview, setEditingReview] = useState(null)
 
     useEffect(() => {
         const fetchReviews = async () => {
@@ -18,18 +35,126 @@ export default function MovieReviews({ movieId }) {
                 console.error('Error fetching reviews:', error)
             }
         }
-
         fetchReviews()
     }, [movieId])
+
+    const handleOpen = () => setOpen(true)
+    const handleClose = () => {
+        setEditingReview(null) // 編集レビューをリセット
+        setOpen(false)
+    }
+
+    const addReview = newReview => {
+        if (editingReview) {
+            // 編集モードの場合、既存のレビューを更新
+            setReviews(
+                reviews.map(review =>
+                    review.id === newReview.id ? newReview : review,
+                ),
+            )
+        } else {
+            // 新規投稿の場合、レビューを追加
+            setReviews([...reviews, newReview])
+        }
+        setEditingReview(null) // 編集モードを解除
+    }
+
+    const handleDelete = async id => {
+        // console.log(id)
+        if (window.confirm('このレビューを削除してもよろしいでしょうか？')) {
+            try {
+                const response = await laravelApiClient.delete(
+                    `api/reviews/${id}`,
+                )
+                console.log(response)
+                const filteredReviews = reviews.filter(
+                    review => review.id !== id,
+                )
+                setReviews(filteredReviews)
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    }
+
+    const handleEdit = review => {
+        setEditingReview(review)
+        setOpen(true)
+    }
 
     return (
         <div
             style={{
                 backgroundColor: '#FFF',
-                padding: '100px',
+                padding: '50px',
             }}>
-            <ReviewForm />
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div
+                style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}>
+                <Button
+                    variant="contained"
+                    onClick={handleOpen}
+                    startIcon={<AddIcon />}
+                    size="large"
+                    sx={{
+                        border: '1px solid #B5B5B5',
+                        borderRadius: '50px',
+                        color: '#333333',
+                        '&:hover': {
+                            backgroundColor: '#A0A0A0',
+                        },
+                        fontWeight: 'bold',
+                    }}>
+                    レビューを投稿する
+                </Button>
+            </div>
+            {/* レビュー投稿フォームのモーダル */}
+            <Modal open={open} onClose={handleClose}>
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '80%',
+                        maxWidth: '800px',
+                        bgcolor: 'background.paper',
+                        boxShadow: 24,
+                        p: 4,
+                        borderRadius: '10px',
+                    }}>
+                    {/* 閉じるボタン */}
+                    <IconButton
+                        onClick={handleClose}
+                        sx={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            padding: '10px', // ボタン全体のサイズ調整
+                            '& .MuiSvgIcon-root': {
+                                fontSize: '2rem', // アイコンのサイズ調整
+                            },
+                        }}>
+                        <CloseIcon />
+                    </IconButton>
+                    <ReviewForm
+                        addReview={addReview}
+                        onSubmit={handleClose}
+                        movieId={movieId}
+                        reviewToEdit={editingReview}
+                    />
+                </Box>
+            </Modal>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    mt: 4,
+                }}>
                 {reviews.map(review => (
                     <Card
                         key={review.id}
@@ -37,12 +162,38 @@ export default function MovieReviews({ movieId }) {
                             maxWidth: 800,
                             margin: 'auto',
                             width: '80%',
-                            p: '20px',
+                            p: '10px',
                         }}>
                         <CardContent>
-                            <Typography variant="h6" component="div">
-                                {review.user.name}
-                            </Typography>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                }}>
+                                <Typography variant="h6" component="div">
+                                    {review.user.name}
+                                </Typography>
+                                {/* 削除ボタン */}
+                                <Box>
+                                    {review.user.id === user?.id && (
+                                        <>
+                                            <IconButton
+                                                onClick={() =>
+                                                    handleDelete(review.id)
+                                                }>
+                                                <DeleteIcon />
+                                            </IconButton>
+                                            <IconButton
+                                                onClick={() =>
+                                                    handleEdit(review)
+                                                }>
+                                                <EditIcon />
+                                            </IconButton>
+                                        </>
+                                    )}
+                                </Box>
+                            </Box>
                             <Box
                                 sx={{
                                     display: 'flex',
@@ -53,7 +204,7 @@ export default function MovieReviews({ movieId }) {
                                     <StarIcon
                                         key={index}
                                         color="primary"
-                                        sx={{ fontSize: '30px' }}
+                                        sx={{ fontSize: '40px' }}
                                     />
                                 ))}
                                 {[...Array(5 - review.rating)].map(
@@ -61,7 +212,7 @@ export default function MovieReviews({ movieId }) {
                                         <StarIcon
                                             key={index}
                                             color="disabled"
-                                            sx={{ fontSize: '20px' }}
+                                            sx={{ fontSize: '40px' }}
                                         />
                                     ),
                                 )}
@@ -71,7 +222,7 @@ export default function MovieReviews({ movieId }) {
                                     ({review.rating}/5)
                                 </Typography>
                             </Box>
-                            <Typography sx={{ fontSize: '20px', mt: '20px' }}>
+                            <Typography sx={{ fontSize: '20px', mt: '10px' }}>
                                 {review.review_text}
                             </Typography>
                             <Typography
