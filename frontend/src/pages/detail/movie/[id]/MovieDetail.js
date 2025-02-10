@@ -1,3 +1,4 @@
+import LikeButton from '@/components/LikeButton'
 import { Box, CircularProgress, Grid, Typography } from '@mui/material'
 import React from 'react'
 
@@ -18,7 +19,7 @@ export default function MovieDetail({ movie }) {
                                 width: '100%',
                                 maxHeight: '500px',
                                 objectFit: 'contain',
-                                // filter: 'blur(30px)',
+                                
                             }}
                         />
                     </Grid>
@@ -32,6 +33,9 @@ export default function MovieDetail({ movie }) {
                         <Typography variant="subtitle1" sx={{ mt: '30px' }}>
                             {movie.overview || 'あらすじがありません。'}
                         </Typography>
+                        <Grid item sx={{ textAlign: 'right' }}>
+                            <LikeButton movieId={movie.id} /> 
+                        </Grid>
                         <Typography
                             variant="body1"
                             component="p"
