@@ -12,9 +12,7 @@ import { useState } from 'react'
 
 const Navigation = ({ user }) => {
     const router = useRouter()
-
     const { logout } = useAuth()
-
     const [open, setOpen] = useState(false)
 
     return (
@@ -26,7 +24,7 @@ const Navigation = ({ user }) => {
                         {/* Logo */}
                         <div className="flex-shrink-0 flex items-center">
                             <Link href="/dashboard">
-                                <ApplicationLogo className="block h-10 w-auto fill-current text-gray-600" />
+                                <ApplicationLogo className="block h-10 w-auto fill-current text-gray-700" />
                             </Link>
                         </div>
 
@@ -35,7 +33,15 @@ const Navigation = ({ user }) => {
                             <NavLink
                                 href="/dashboard"
                                 active={router.pathname === '/dashboard'}>
-                                Dashboard
+                                ダッシュボード
+                            </NavLink>
+                        </div>
+
+                        <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                            <NavLink
+                                href="/like"
+                                active={router.pathname === '/like'}>
+                                いいねした映画
                             </NavLink>
                         </div>
                     </div>

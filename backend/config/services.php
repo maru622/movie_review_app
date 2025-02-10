@@ -24,8 +24,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-    'resend' => [
-        'key' => env('RESEND_KEY'),
+    'postmark' => [
+        'token' => env('POSTMARK_TOKEN'),
+    ],
+
+    'tmdb' => [
+        'api_key' => env('TMDB_API_KEY'),
     ],
 
     'slack' => [
